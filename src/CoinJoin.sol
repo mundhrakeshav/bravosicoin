@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {Auth} from "src/Auth.sol";
-import {Pausable} from "src/Pausable.sol";
-import {ICDPEngine} from "interfaces/ICDPEngine.sol";
-import {ICoin} from "interfaces/ICoin.sol";
-import {Math} from "libs/Math.sol";
+import { ICDPEngine } from "interfaces/ICDPEngine.sol";
+import { ICoin } from "interfaces/ICoin.sol";
+import { Math } from "libs/Math.sol";
+import { Auth } from "src/Auth.sol";
+import { Pausable } from "src/Pausable.sol";
 
 contract CoinJoin is Auth, Pausable {
     event Joined(address, uint256);

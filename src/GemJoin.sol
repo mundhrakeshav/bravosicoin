@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {Auth} from "src/Auth.sol";
-import {Pausable} from "src/Pausable.sol";
-import {ICDPEngine} from "interfaces/ICDPEngine.sol";
-import {ERC20} from "solmate/tokens/ERC20.sol";
-import {SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
+import { ICDPEngine } from "interfaces/ICDPEngine.sol";
+import { ERC20 } from "solmate/tokens/ERC20.sol";
+import { SafeTransferLib } from "solmate/utils/SafeTransferLib.sol";
+import { Auth } from "src/Auth.sol";
+import { Pausable } from "src/Pausable.sol";
 
 contract GemJoin is Auth, Pausable {
     error ErrOverFlow();

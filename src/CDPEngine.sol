@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {Auth} from "src/Auth.sol";
-import {Math} from "libs/Math.sol";
-import {Pausable} from "src/Pausable.sol";
-import {ICDPEngine} from "interfaces/ICDPEngine.sol";
+import { ICDPEngine } from "interfaces/ICDPEngine.sol";
+import { Math } from "libs/Math.sol";
+import { Auth } from "src/Auth.sol";
+import { Pausable } from "src/Pausable.sol";
 
 contract CDPEngine is ICDPEngine, Auth, Pausable {
     error ErrModifierNotAllowed();
