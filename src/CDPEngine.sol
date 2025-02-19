@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import { ICDPEngine } from "interfaces/ICDPEngine.sol";
-import { Math } from "libs/Math.sol";
-import { Auth } from "src/Auth.sol";
-import { Pausable } from "src/Pausable.sol";
+import {ICDPEngine} from "interfaces/ICDPEngine.sol";
+import {Math} from "libs/Math.sol";
+import {Auth} from "src/Auth.sol";
+import {Pausable} from "src/Pausable.sol";
 
 contract CDPEngine is ICDPEngine, Auth, Pausable {
     error ErrModifierNotAllowed();
@@ -27,7 +27,10 @@ contract CDPEngine is ICDPEngine, Auth, Pausable {
     uint256 systemDebt;
 
     modifier canModify(address usr) {
-        require(msg.sender == usr || can[usr][msg.sender] == 1, ErrModifierNotAllowed());
+        require(
+            msg.sender == usr || can[usr][msg.sender] == 1,
+            ErrModifierNotAllowed()
+        );
         _;
     }
 
@@ -40,21 +43,34 @@ contract CDPEngine is ICDPEngine, Auth, Pausable {
     }
 
     function init(bytes32 collateralType) external auth {
-        require(collaterals[collateralType].rateAcc == 0, ErrCollateralAlreadyInit());
+        require(
+            collaterals[collateralType].rateAcc == 0,
+            ErrCollateralAlreadyInit()
+        );
         collaterals[collateralType].rateAcc = 1e27;
     }
 
-    function modifyCollateralBalance(bytes32 _collateralType, address _usr, int256 _wad) external auth {
+    function modifyCollateralBalance(
+        bytes32 _collateralType,
+        address _usr,
+        int256 _wad
+    ) external auth {
         uint256 wad = gem[_collateralType][_usr];
         gem[_collateralType][_usr] = Math.add(wad, _wad);
     }
 
-    function transferCoin(address src, address dst, uint256 rad) external canModify(src) {
+    function transferCoin(
+        address src,
+        address dst,
+        uint256 rad
+    ) external canModify(src) {
         balance[src] = balance[src] - rad;
         balance[dst] = balance[dst] + rad;
     }
 
-    function canModifyAccount(address src) internal view canModify(src) returns (bool) {
+    function canModifyAccount(
+        address src
+    ) internal view canModify(src) returns (bool) {
         return true;
     }
 
@@ -82,17 +98,35 @@ contract CDPEngine is ICDPEngine, Auth, Pausable {
         systemDebt = Math.add(systemDebt, deltaCoin);
 
         require(
-            deltaDebt <= 0 || (col.totalNormalisedDebt * col.rateAcc <= col.maxDebt && systemDebt <= sysMaxDebt),
+            deltaDebt <= 0 ||
+                (col.totalNormalisedDebt * col.rateAcc <= col.maxDebt &&
+                    systemDebt <= sysMaxDebt),
             ErrCeilingExceeded()
         );
 
-        require((deltaDebt <= 0 && deltaCol >= 0) || coinDebt <= pos.collateral * col.spot, ErrNotSafe());
-        require((deltaDebt <= 0 && deltaCol >= 0) || canModifyAccount(user), ErrNotAllowedCDP());
-        require((deltaCol <= 0) || canModifyAccount(gemSrc), ErrNotAllowedGemSrc());
-        require((deltaDebt >= 0) || canModifyAccount(coinDst), ErrNotAllowedGemSrc());
+        require(
+            (deltaDebt <= 0 && deltaCol >= 0) ||
+                coinDebt <= pos.collateral * col.spot,
+            ErrNotSafe()
+        );
+        require(
+            (deltaDebt <= 0 && deltaCol >= 0) || canModifyAccount(user),
+            ErrNotAllowedCDP()
+        );
+        require(
+            (deltaCol <= 0) || canModifyAccount(gemSrc),
+            ErrNotAllowedGemSrc()
+        );
+        require(
+            (deltaDebt >= 0) || canModifyAccount(coinDst),
+            ErrNotAllowedGemSrc()
+        );
         require(pos.normalizedDebt == 0 || coinDebt >= col.minDebt, ErrDust());
 
-        gem[collateralType][gemSrc] = Math.sub(gem[collateralType][gemSrc], deltaCol);
+        gem[collateralType][gemSrc] = Math.sub(
+            gem[collateralType][gemSrc],
+            deltaCol
+        );
 
         balance[coinDst] = Math.add(balance[coinDst], deltaCoin);
 
@@ -105,14 +139,23 @@ contract CDPEngine is ICDPEngine, Auth, Pausable {
         else revert ErrUnrecognizedParam();
     }
 
-    function set(bytes32 key, bytes32 what, uint256 val) external auth notPaused {
+    function set(
+        bytes32 key,
+        bytes32 what,
+        uint256 val
+    ) external auth notPaused {
         if (key == "spot") collaterals[what].spot = val;
         else if (key == "maxDebt") collaterals[what].maxDebt = val;
         else if (key == "minDebt") collaterals[what].minDebt = val;
         else revert ErrUnrecognizedParam();
     }
 
-    function fold(bytes32 _collateralType, address _coinDst, int256 _deltaRate) external auth notPaused {
+    //
+    function fold(
+        bytes32 _collateralType,
+        address _coinDst,
+        int256 _deltaRate
+    ) external auth notPaused {
         Collateral memory col = collaterals[_collateralType];
         col.rateAcc = Math.add(col.rateAcc, _deltaRate);
         int256 deltaCoin = Math.mul(col.totalNormalisedDebt, _deltaRate);
