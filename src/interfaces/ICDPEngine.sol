@@ -20,9 +20,29 @@ interface ICDPEngine {
         uint256 normalizedDebt; // [wad]
     }
 
-    function modifyCollateralBalance(bytes32 collateralType, address src, int256 wad) external;
+    function collaterals(
+        bytes32 col_type
+    ) external view returns (Collateral memory);
+
+    // urns
+    function positions(
+        bytes32 col_type,
+        address account
+    ) external view returns (Position memory);
+
+    function modifyCollateralBalance(
+        bytes32 collateralType,
+        address src,
+        int256 wad
+    ) external;
 
     function set(bytes32 key, bytes32 what, uint256 val) external;
+
+    function updateRateAcc(
+        bytes32 _collateralType,
+        address _coinDst,
+        int256 _deltaRate
+    ) external;
 
     function transferCoin(address src, address dst, uint256 amt) external;
 }

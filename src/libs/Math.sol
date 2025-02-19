@@ -51,6 +51,7 @@ library Math {
         z = (x * RAY) / y;
     }
 
+    // ((x/b) ** n) * b
     function rpow(uint256 x, uint256 n, uint256 b) internal pure returns (uint256 z) {
         assembly {
             switch x

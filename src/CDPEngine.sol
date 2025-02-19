@@ -6,7 +6,7 @@ import {Math} from "libs/Math.sol";
 import {Auth} from "src/Auth.sol";
 import {Pausable} from "src/Pausable.sol";
 
-contract CDPEngine is ICDPEngine, Auth, Pausable {
+contract CDPEngine is Auth, Pausable {
     error ErrModifierNotAllowed();
     error ErrCollateralAlreadyInit();
     error ErrUnrecognizedParam();
@@ -17,8 +17,10 @@ contract CDPEngine is ICDPEngine, Auth, Pausable {
     error ErrNotAllowedGemSrc();
     error ErrDust();
 
-    mapping(bytes32 => Collateral) public collaterals;
-    mapping(bytes32 => mapping(address => Position)) public positions;
+    mapping(bytes32 => ICDPEngine.Collateral) public collaterals;
+    // urns - collateral type => account => position
+    mapping(bytes32 => mapping(address => ICDPEngine.Position))
+        public positions;
     mapping(bytes32 => mapping(address => uint256)) gem;
     mapping(address => mapping(address => uint256)) can;
     mapping(address => uint256) balance;
@@ -83,8 +85,8 @@ contract CDPEngine is ICDPEngine, Auth, Pausable {
         int256 deltaCol,
         int256 deltaDebt
     ) external auth notPaused {
-        Position memory pos = positions[collateralType][user];
-        Collateral memory col = collaterals[collateralType];
+        ICDPEngine.Position memory pos = positions[collateralType][user];
+        ICDPEngine.Collateral memory col = collaterals[collateralType];
 
         require(col.rateAcc != 0, ErrCollateralNotInit());
 
@@ -151,12 +153,12 @@ contract CDPEngine is ICDPEngine, Auth, Pausable {
     }
 
     //
-    function fold(
+    function updateRateAcc(
         bytes32 _collateralType,
         address _coinDst,
         int256 _deltaRate
     ) external auth notPaused {
-        Collateral memory col = collaterals[_collateralType];
+        ICDPEngine.Collateral memory col = collaterals[_collateralType];
         col.rateAcc = Math.add(col.rateAcc, _deltaRate);
         int256 deltaCoin = Math.mul(col.totalNormalisedDebt, _deltaRate);
         balance[_coinDst] = Math.add(balance[_coinDst], deltaCoin);
