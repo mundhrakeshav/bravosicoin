@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.27;
 
-import {ICDPEngine} from "interfaces/ICDPEngine.sol";
-import {Math} from "libs/Math.sol";
-import {Auth} from "src/Auth.sol";
-import {Pausable} from "src/Pausable.sol";
+import { ICDPEngine } from "interfaces/ICDPEngine.sol";
+import { Math } from "libs/Math.sol";
+import { Auth } from "src/Auth.sol";
+import { Pausable } from "src/Pausable.sol";
 
 contract Pot is Auth, Pausable {
     error ErrNotUpdated();
@@ -27,37 +27,24 @@ contract Pot is Auth, Pausable {
 
     function set(bytes32 _key, uint256 _data) external auth notPaused {
         require(updatedAt == block.timestamp, ErrNotUpdated());
-        if (_key == "savingsRate") {
-            savingsRate = _data;
-        } else {
-            revert ErrUnrecognizedParam();
-        }
+        if (_key == "savingsRate") savingsRate = _data;
+        else revert ErrUnrecognizedParam();
     }
 
     function set(bytes32 _key, address addr) external auth notPaused {
-        if (_key == "debtSurplusEngine") {
-            debtSurplusEngine = addr;
-        } else {
-            revert ErrUnrecognizedParam();
-        }
+        if (_key == "debtSurplusEngine") debtSurplusEngine = addr;
+        else revert ErrUnrecognizedParam();
     }
 
     function collectStabilityFee() external returns (uint256) {
         require(updatedAt <= block.timestamp, ErrNotUpdated());
 
-        uint256 acc = Math.rmul(
-            Math.rpow(savingsRate, block.timestamp - updatedAt, Math.RAY),
-            rateAcc
-        );
+        uint256 acc = Math.rmul(Math.rpow(savingsRate, block.timestamp - updatedAt, Math.RAY), rateAcc);
         uint256 deltaRateAcc = acc - rateAcc;
         rateAcc = acc;
         updatedAt = block.timestamp;
 
-        cdpEngine.mint(
-            debtSurplusEngine,
-            address(this),
-            totalPie * deltaRateAcc
-        );
+        cdpEngine.mint(debtSurplusEngine, address(this), totalPie * deltaRateAcc);
         return acc;
     }
 
