@@ -45,4 +45,6 @@ interface ICDPEngine {
     ) external;
 
     function transferCoin(address src, address dst, uint256 amt) external;
+
+    function mint(address debtDst, address coinDst, uint256 rad) external;
 }
